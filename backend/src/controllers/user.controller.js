@@ -1,9 +1,9 @@
 import {ApiResponse} from '../utils/ApiResponse.js';
 import {ApiError} from '../utils/ApiError.js';
-import {asynHandler} from '../utils/asyncHandler.js';
+import {asyncHandler} from '../utils/asyncHandler.js';
 import {User} from '../models/user.model.js';
 
-const registerUser = asynHandler( async(req, res) => {
+const registerUser = asyncHandler( async(req, res) => {
     const {Name, Email, role, password} = req.body;
 
     if(
@@ -34,11 +34,46 @@ const registerUser = asynHandler( async(req, res) => {
         throw new ApiError(502, "Something went wrong")
     };
 
-    return res.status(400).json(
-         new ApiResponse(402, createdUser, "User registered succesfully")
+    return res.status(201).json(
+         new ApiResponse(201, createdUser, "User registered succesfully")
     );
 });
 
+const loginUser = asyncHandler(async(req, res)=>{
+    const {Email, password} = req.body;
+
+    if(!Email || !password){
+        throw new ApiError(404, "All fields are required")
+    };
+
+    console.log(Email);
+    console.log(password);
+    
+    
+    const findUser = await User.findOne({
+        $or : [{Email}]
+    });
+
+    console.log(findUser);
+    
+
+    if(!findUser){
+        throw new ApiError(401, "please register before");
+    }
+
+    const checkPassword = await findUser.isPasswordCorrect(password)
+    if(!checkPassword){
+        throw new ApiError(402, "Invaild Credintials")
+    }
+
+    const loggedInUser = await User.findById(findUser._id).select(" -password")
+
+    return res.status(200).json(
+        new ApiResponse(200, loggedInUser, "login successful")
+    )
+})
+
 export {
-    registerUser
+    registerUser,
+    loginUser
 }
