@@ -45,11 +45,7 @@ const loginUser = asyncHandler(async(req, res)=>{
     if(!Email || !password){
         throw new ApiError(404, "All fields are required")
     };
-
-    console.log(Email);
-    console.log(password);
-    
-    
+        
     const findUser = await User.findOne({
         $or : [{Email}]
     });
@@ -61,9 +57,9 @@ const loginUser = asyncHandler(async(req, res)=>{
         throw new ApiError(401, "please register before");
     }
 
-    const checkPassword = await findUser.isPasswordCorrect(password)
-    if(!checkPassword){
-        throw new ApiError(402, "Invaild Credintials")
+    const passwordvaildation =await findUser.isPasswordCorrect(password)         // don't access the method using User beacuse it is mongo user your user is {user} if your using and mongodb quary then use {User} this is object of mongo therefor and to apply your own methods use {user} your are taking the instance of the of mongo object
+    if(!passwordvaildation){
+        throw new ApiError(401, "invaild password credintial")
     }
 
     const loggedInUser = await User.findById(findUser._id).select(" -password")

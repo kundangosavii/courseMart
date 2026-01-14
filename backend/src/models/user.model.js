@@ -29,16 +29,14 @@ const UserModel = Schema(
     {timestamps : true}
 );
 
-UserModel.pre('save', async function(next){
-    if(!this.isModified('password')) return next()
-    
-    this.password = await bcrypt.hash(this.password, 10)
-    next()
+UserModel.pre("save", async function(next) {
+    if(!this.isModified("password")) return next()
 
+    this.password = await bcrypt.hash("password",10)
+    
 })
 
-UserModel.methods.isPasswordCorrect = async function(password){
-    return await bcrypt.compare ("password", this.password)
+UserModel.methods.isPasswordCorrect = async function (password) {
+    return await bcrypt.compare("password", this.password)
 }
-
 export const User = mongoose.model('User', UserModel)
