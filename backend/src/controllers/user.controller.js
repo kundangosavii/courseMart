@@ -3,6 +3,20 @@ import {ApiError} from '../utils/ApiError.js';
 import {asyncHandler} from '../utils/asyncHandler.js';
 import {User} from '../models/user.model.js';
 
+const generateAccessAndRefreshToken = async(userId) => {
+    try {
+        const user =await User.findById(userId)
+        const accessToken = user.generateAccessToken()
+        const refreshToken = user.generateRefershToken()
+    
+        user.refreshToken = refreshToken
+        return {accessToken, refreshToken}
+    }  catch (error) {
+        
+    }
+    
+}
+
 const registerUser = asyncHandler( async(req, res) => {
     const {Name, Email, role, password} = req.body;
 
@@ -50,23 +64,38 @@ const loginUser = asyncHandler(async(req, res)=>{
         $or : [{Email}]
     });
 
-    console.log(findUser);
-    
-
     if(!findUser){
         throw new ApiError(401, "please register before");
     }
 
-    const passwordvaildation =await findUser.isPasswordCorrect(password)         // don't access the method using User beacuse it is mongo user your user is {user} if your using and mongodb quary then use {User} this is object of mongo therefor and to apply your own methods use {user} your are taking the instance of the of mongo object
+    const passwordvaildation =await findUser.isPasswordCorrect(password)       
     if(!passwordvaildation){
         throw new ApiError(401, "invaild password credintial")
     }
+ 
+    const {accessToken, refreshToken} = await generateAccessAndRefreshToken(findUser._id)
 
-    const loggedInUser = await User.findById(findUser._id).select(" -password")
+    const loggedInUser = await User.findById(findUser._id).select(" -password -refreshToken")
 
-    return res.status(200).json(
-        new ApiResponse(200, loggedInUser, "login successful")
+    const options = {
+        httpOnly : true,
+        secure : true
+    }
+
+    return res
+    .status(200)
+    .cookie("accesstoken", accessToken, options)
+    .cookie("refreshtoken", refreshToken, options)
+    .json(
+        new ApiResponse(
+            200,
+            {
+                loggedInUser, accessToken, refreshToken
+            },
+            "User logged in successfully"
+        )
     )
+
 })
 
 export {
