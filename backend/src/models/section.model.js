@@ -1,5 +1,5 @@
 import mongoose, {Schema} from "mongoose";
-import { Lesson } from "./lesson.model";
+
 
 const SectionModel = Schema(
     {

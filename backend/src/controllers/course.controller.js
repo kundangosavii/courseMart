@@ -33,10 +33,10 @@ const getCourseDetails = asyncHandler(async(req, res) => {
 
         const courseSections = await Section.find({ courseId }).sort({order: 1})
 
-        const sectionId = courseSections.map((s) => s._id)
+        const sectionIds = courseSections.map((s) => s._id)
         const sectionLessons = await Lesson.find(
             {
-                sectionId : { $in: sectionId }
+                sectionId : { $in: sectionIds }
             }
         ).sort({order:1})
 
@@ -72,7 +72,7 @@ const getCourseDetails = asyncHandler(async(req, res) => {
                     },
                     Content : courseContent,
                     enrolled : false,
-                    prograss : 0
+                    progress : 0
                 },
                 "Returning all course data successfully"
             )
